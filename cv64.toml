@@ -1,0 +1,19 @@
+# Config file for Castlevania 64 NTSC 1.0 Recompilation.
+
+[input]
+entrypoint = 0x80000400
+# Paths are relative to the location of this config file.
+output_func_path = "RecompiledFuncs"
+rom_file_path = "cv64.decompressed.z64"
+symbols_file_path = "CV64Syms/dump.toml"
+bss_section_suffix = "_bss"
+
+[patches]
+
+ignored = [
+    "func_80014EE0_15AE0", # handwritten, unused?
+]
+
+stubs = [
+
+]
