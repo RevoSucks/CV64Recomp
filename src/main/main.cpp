@@ -64,7 +64,7 @@
 
 #include "../../lib/rt64/src/contrib/stb/stb_image.h"
 
-const std::string version_string = "1.0.1";
+const std::string version_string = "0.0.1";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {
@@ -166,7 +166,7 @@ ultramodern::renderer::WindowHandle create_window(ultramodern::gfx_callbacks_t::
     flags |= SDL_WINDOW_VULKAN;
 #endif
 
-    window = SDL_CreateWindow("Banjo: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 900,  flags);
+    window = SDL_CreateWindow("Castlevania 64: Recompiled", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1600, 900,  flags);
 
     if (window == nullptr) {
         exit_error("Failed to create window: %s\n", SDL_GetError());
@@ -373,17 +373,17 @@ gpr get_entrypoint_address();
 // array of supported GameEntry objects
 std::vector<recomp::GameEntry> supported_games = {
     {
-        .rom_hash = 0x1B67585D56E07F8CULL,
-        .internal_name = "Banjo-Kazooie",
-        .display_name = "Banjo-Kazooie",
-        .game_id = u8"bk.n64.us.1.0",
-        .mod_game_id = "bk",
+        .rom_hash = 0x6633DAE5D9CA4802ULL,
+        .internal_name = "CASTLEVANIA",
+        .display_name = "Castlevania 64",
+        .game_id = u8"cv64.us.1.0",
+        .mod_game_id = "cv64",
         // Eep16k instead of Eep4k to have room for extra save file data.
         .save_type = recomp::SaveType::Eep16k,
         .thumbnail_bytes = std::span<const char>(icon_bytes),
         .is_enabled = false,
-        .decompression_routine = banjo::decompress_bk,
-        .has_compressed_code = true,
+        //.decompression_routine = banjo::decompress_bk,
+        //.has_compressed_code = true,
         .entrypoint_address = get_entrypoint_address(),
         .entrypoint = recomp_entrypoint,
         .on_init_callback = banjo::bk_on_init,

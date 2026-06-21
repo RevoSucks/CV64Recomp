@@ -8,8 +8,8 @@
 #include "json/json.hpp"
 
 namespace banjo {
-    inline const std::u8string program_id = u8"BanjoRecompiled";
-    inline const std::string program_name = "Banjo: Recompiled";
+    inline const std::u8string program_id = u8"CV64Recompiled";
+    inline const std::string program_name = "Castlevania 64: Recompiled";
 
     namespace configkeys {
         namespace general {

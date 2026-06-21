@@ -223,6 +223,28 @@ constexpr uint32_t k1_to_phys(uint32_t addr) {
     return addr & 0x1FFFFFFF;
 }
 
+// TODO
+extern "C" void __f_to_ull_recomp(RDRAM_ARG recomp_context * ctx) {
+    // PLEASE DO THIS IT WILL BREAK STUFF OTHERWISE
+}
+
+// TODO: Does this game use TLB
+extern "C" void osMapTLB_recomp(RDRAM_ARG recomp_context * ctx) {
+    // PLEASE DO THIS IT WILL BREAK STUFF OTHERWISE
+}
+
+extern "C" void osUnmapTLB_recomp(RDRAM_ARG recomp_context * ctx) {
+    // PLEASE DO THIS IT WILL BREAK STUFF OTHERWISE
+}
+
+extern "C" void __osContAddressCrc_recomp(RDRAM_ARG recomp_context * ctx) {
+    // TODO
+}
+
+extern "C" void osPfsIsPlug_recomp(RDRAM_ARG recomp_context * ctx) {
+    // TODO
+}
+
 extern "C" void osPiReadIo_recomp(RDRAM_ARG recomp_context * ctx) {
     uint32_t devAddr = recomp::rom_base | ctx->r4;
     gpr dramAddr = ctx->r5;
