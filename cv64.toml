@@ -4,8 +4,10 @@
 entrypoint = 0x80000400
 # Paths are relative to the location of this config file.
 output_func_path = "RecompiledFuncs"
-rom_file_path = "cv64.decompressed.z64"
-symbols_file_path = "CV64Syms/dump.toml"
+#rom_file_path = "cv64.decompressed.z64"
+elf_path = "cv64.decompressed.us.elf"
+#symbols_file_path = "CV64Syms/dump.toml"
+relocatable_sections_path = "cv64.us.overlays.txt"
 bss_section_suffix = "_bss"
 
 [patches]

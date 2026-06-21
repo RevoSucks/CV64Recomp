@@ -20,6 +20,7 @@ extern struct FileSegment D_80094838_95438[];
 // Really shitty workaround.
 extern OSPiHandle* gCartHandle;
 extern void DMA_readWrite(OSPiHandle* piHandle, s32 direction, void* dest, void* src, s32 len);
+extern void overlay_apply_relocations(u32 file_id, u8 *load_addr);
 
 RECOMP_PATCH void DMA_ROMCopy(void* src, void* dest, s32 len) {
     u32 rom_addr = (u32)src;
@@ -28,7 +29,10 @@ RECOMP_PATCH void DMA_ROMCopy(void* src, void* dest, s32 len) {
 
     // hardcoded size for test. TODO: fix
     switch(rom_addr) {
-        case 0xB5140E: recomp_load_overlays(0xE509C0, (void*)0x0F000000, 0x380); break;
+        case 0xB5140E: 
+            recomp_load_overlays(0xE509C0, (void*)0x0F000000, 0x380); 
+            overlay_apply_relocations(389, (void*)0x0F000000);
+            break;
     }
 
     DMA_readWrite(gCartHandle, OS_READ, dest, src, len);
@@ -85,7 +89,6 @@ RECOMP_PATCH void *loadCompressedFile(u32 file_id, u8* buf_start) {
 
             // @recomp Apply relocations after loading the overlay.
             // TODO
-            //overlay_apply_relocations(file_id, buf_start);
         }
 
         //D_8015C5D4_15D1D4 = was_loading_file;
