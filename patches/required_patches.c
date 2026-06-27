@@ -28,6 +28,8 @@ extern void romCopyAndDecompress(u32, void *, u32);
 RECOMP_PATCH void DMA_ROMCopy(void* src, void* dest, s32 len) {
     recomp_printf("[DMA_ROMCopy] src 0x%08X src 0x%08X src 0x%08X\n", (u32)src, (u32)dest, len);
 
+    // Certain overlays are decompressed. These dont use the mapOverlay system and are just
+    // DMA'd regularly from the DMA Mgr load file. We will load them here, and handle common.
     switch((u32)src) {
         case 0x000A8420: 
         case 0x00697040: 
@@ -296,10 +298,6 @@ RECOMP_PATCH void mapOverlay(ObjectHeader* self) {
     vaddr = D_80092270_92E70[(self->ID) & 0x7FF] & 0x0F000000;
     currently_mapped_overlay_vaddr[mapped_files_array_index] = vaddr;
 
-    recomp_printf("[mapOverlay] called with addr 0x%08X\n", addr);
-    recomp_printf("[mapOverlay] called with size 0x%08X\n", size);
-    recomp_printf("[mapOverlay] called with vaddr 0x%08X\n", vaddr);
-
     switch (((u32) vaddr >> 0x18)) {
     case 0xF: // 0x0F000000
         tlb_id = 0;
@@ -328,8 +326,6 @@ RECOMP_PATCH void mapOverlay(ObjectHeader* self) {
         osMapTLB(tlb_id++, 0, (void*)(vaddr + i), addr, addr + 0x1000, -1); // map for both pages for a total of 8KiB
     }
 
-    
-
     if (self->ID & OBJ_FLAG_MAP_OVERLAY) {
         u32 newID = self->ID;
 
@@ -339,7 +335,7 @@ RECOMP_PATCH void mapOverlay(ObjectHeader* self) {
         newID &= ~(OBJ_FLAG_DESTROY);
         newID &= ~(OBJ_FLAG_MOVE_ALONGSIDE_COLLISION);
 
-        u32 tableID = (s32)(*(u32*)D_8009342C_9402C[(self->ID) & 0x7FF]);
+        u32 tableID = (s32)(*(u32*)D_8009342C_9402C[newID]);
         s32 *fileArr = &D_8009502C_95C2C[tableID << 1];
 
         u32 rom = fileArr[2] & 0x0FFFFFFF;
@@ -349,14 +345,6 @@ RECOMP_PATCH void mapOverlay(ObjectHeader* self) {
         recomp_printf("[mapOverlay] recomp_load_overlays call using args 0x%08X 0x%08X 0x%08X\n", rom, vaddr, size);
 
         recomp_load_overlays(rom, (void*)vaddr, size);
-
-        /*
-        switch (newID) {
-            default: // unsupported overlay
-                recomp_printf("[mapOverlay] ID not found in lookup. Overlap remapping failed with %d 0x%08X\n", newID, newID);
-                break;
-        }
-        */
     }
     
     mapped_files_array_index++;

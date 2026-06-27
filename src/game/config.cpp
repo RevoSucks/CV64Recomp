@@ -5,7 +5,7 @@
 #include "banjo_sound.h"
 #include "banjo_support.h"
 #include "ultramodern/config.hpp"
-#include "librecomp/files.hpp"
+#include "ultramodern/files.hpp"
 #include "librecomp/config.hpp"
 #include "util/file.h"
 #include <filesystem>

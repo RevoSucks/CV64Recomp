@@ -233,10 +233,6 @@ extern "C" void __osContAddressCrc_recomp(RDRAM_ARG recomp_context * ctx) {
     // TODO
 }
 
-extern "C" void osPfsIsPlug_recomp(RDRAM_ARG recomp_context * ctx) {
-    // TODO
-}
-
 extern "C" void osPiReadIo_recomp(RDRAM_ARG recomp_context * ctx) {
     uint32_t devAddr = recomp::rom_base | ctx->r4;
     gpr dramAddr = ctx->r5;
@@ -251,10 +247,6 @@ extern "C" void osPiReadIo_recomp(RDRAM_ARG recomp_context * ctx) {
     }
 
     ctx->r2 = 0;
-}
-
-extern "C" void osPfsInit_recomp(uint8_t * rdram, recomp_context* ctx) {
-    ctx->r2 = 11; // PFS_ERR_DEVICE
 }
 
 // u32 rom_addr, void *ram_addr, u32 size
