@@ -6,20 +6,6 @@
 
 unsigned long long dummy = 0x0123456789ABCDEFULL;
 
-// osVirtualToPhysical patch because N64Recomp
-
-RECOMP_PATCH u32 osVirtualToPhysical_game(void *addr) {
-    u32 addr_val = (u32)addr;
-    if (IS_KSEG0(addr_val)) {
-        return K0_TO_PHYS(addr_val);
-    } else if (IS_KSEG1(addr_val)) {
-        return K1_TO_PHYS(addr_val);
-    } else {
-        // TODO handle TLB mappings
-        return recomp_tlb_lookup(addr_val);
-    }
-}
-
 struct FileSegment {
     u32 start;
     u32 end;
