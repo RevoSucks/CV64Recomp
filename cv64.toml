@@ -8,12 +8,18 @@ output_func_path = "RecompiledFuncs"
 elf_path = "cv64.decompressed.us.elf"
 #symbols_file_path = "CV64Syms/dump.toml"
 relocatable_sections_path = "cv64.us.overlays.txt"
+recomp_include = "#include \"cv64_recomp.h\""
 bss_section_suffix = "_bss"
 
 [patches]
 
 ignored = [
     "func_80014EE0_15AE0", # handwritten, unused?
+    "osVirtualToPhysical_recomp"
+]
+
+replaced = [
+    "osVirtualToPhysical_recomp"
 ]
 
 stubs = [

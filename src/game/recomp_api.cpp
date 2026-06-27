@@ -15,6 +15,7 @@
 #include "ultramodern/ultramodern.hpp"
 #include "ultramodern/config.hpp"
 #include "../lib/N64ModernRuntime/thirdparty/xxHash/xxh3.h"
+#include "tlb.h"
 
 extern "C" void recomp_update_inputs(uint8_t* rdram, recomp_context* ctx) {
     recompinput::poll_inputs();
@@ -228,15 +229,6 @@ extern "C" void __f_to_ull_recomp(RDRAM_ARG recomp_context * ctx) {
     // PLEASE DO THIS IT WILL BREAK STUFF OTHERWISE
 }
 
-// TODO: Does this game use TLB
-extern "C" void osMapTLB_recomp(RDRAM_ARG recomp_context * ctx) {
-    // PLEASE DO THIS IT WILL BREAK STUFF OTHERWISE
-}
-
-extern "C" void osUnmapTLB_recomp(RDRAM_ARG recomp_context * ctx) {
-    // PLEASE DO THIS IT WILL BREAK STUFF OTHERWISE
-}
-
 extern "C" void __osContAddressCrc_recomp(RDRAM_ARG recomp_context * ctx) {
     // TODO
 }
@@ -296,4 +288,11 @@ extern "C" void recomp_xxh3(uint8_t* rdram, recomp_context* ctx) {
     
     ctx->r2 = (int32_t)(ret >> 32);
     ctx->r3 = (int32_t)(ret >> 0);
+}
+
+extern "C" void recomp_tlb_lookup(uint8_t* rdram, recomp_context* ctx) {
+    u32 addr = _arg<0, u32>(rdram, ctx);
+    u32 newAddr = _tlb_lookup(addr);
+
+    _return(ctx, newAddr);
 }
