@@ -64,7 +64,7 @@
 
 #include "../../lib/rt64/src/contrib/stb/stb_image.h"
 
-const std::string version_string = "0.0.1";
+const std::string version_string = "0.1.0";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {
@@ -96,7 +96,7 @@ ultramodern::input::connected_device_info_t get_connected_device_info(int contro
     if (recompinput::players::is_single_player_mode() || recompinput::players::get_player_is_assigned(controller_num)) {
         return ultramodern::input::connected_device_info_t{
             .connected_device = ultramodern::input::Device::Controller,
-            .connected_pak = ultramodern::input::Pak::RumblePak,
+            .connected_pak = ultramodern::input::Pak::ControllerPak,
         };
     }
 
