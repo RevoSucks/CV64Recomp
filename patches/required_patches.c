@@ -4,8 +4,6 @@
 #include "game/system_work.h"
 #include "game/object_ID.h"
 
-unsigned long long dummy = 0x0123456789ABCDEFULL;
-
 struct FileSegment {
     u32 start;
     u32 end;

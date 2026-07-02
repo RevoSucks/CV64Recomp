@@ -33,3 +33,32 @@ stubs = [
 func = "__amHandleFrameMsg"
 vram = 0x8007945C
 value = 0x00E3082A # sltu $at, $a3, $v1 -> slt $at, $a3, $v1
+
+# In Castlevania (N64), it's possible for cutscenes to call object overlay code with said overlay
+# decompressed but still mapped physically in the spot it's decompressed at. For example, one of 
+# Camilla's destroy functions (the one at 0x0F0047F8) is called by both Camilla's own function
+# 0x0F00417C (which is responsible for starting Camilla's defeated cutscene by setting its cutscene
+# ID of 0x55) and then again at 0x0E000D7C inside the cutscene's loop function (0x0E000440) when
+# the cutscene time ends. In the latter instance, however, the Camilla function is at 0x803967F8
+# and the cutscene gets that address from her object info (it was created by the Camilla object
+# calling function 0x800993c0 osVirtualToPhysical with 0x0F0047F8 in A0).
+
+# In practice thoough, object functions called like this don't really have a good way to call the
+# object's other functions; they're pretty much limited to stuff inside the RDRAM domain 
+# register jumps. 
+
+# Doing a non-register jump means it will jump to different addresses in both instances depending
+# on which domain  the code is executing in and there's no guarantee the object code will be mapped
+# in the 0F domain at the moment  when jumping from the decompressed spot.
+
+# The game accomplishes this by running osVirtualToPhysical on some TLB addresses. This will
+# result in some jalr instructions using the physical address instead of the segmented address.
+# Jumping to these addresses will fail since the TLB functions live in segmented space in N64Recomp side.
+# Thus, the jals either need to be patched or the offending osVirtualToPhysical use patched out.
+
+[[patches.instruction]]
+func = "func_0F009678_DC2868"
+vram = 0x0F009690
+value = 0x0FC02898 # jal func_0F00A260_DC3450
+
+# TODO: Patch the rest
