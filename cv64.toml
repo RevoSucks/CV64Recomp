@@ -23,7 +23,7 @@ replaced = [
 ]
 
 stubs = [
-
+    "func_80018FF0_19BF0" # debug leftover for IS64 cart handler. Can be stubbed due to HW REG writes.
 ]
 
 # When osAiGetLength returns a number that exceeds the target amount of samples per frame, the calculation (target samples per frame - osAiGetLength()) will result in a negative number.
