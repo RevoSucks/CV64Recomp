@@ -86,7 +86,7 @@ static inline int64_t _tlb_lookup(int64_t eff_addr) {
 
 // TODO: Combine these.
 /**
- * RDRAM lookup for TLB.
+ * RDRAM lookup for TLB. This one returns the physical address as-is.
  */
 static inline int64_t _tlb_lookup_raw(int64_t eff_addr) {
     // Fast path: is this normal RDRAM? — no TLB walk needed.
@@ -136,8 +136,25 @@ static inline int64_t _tlb_lookup_raw(int64_t eff_addr) {
             return (int64_t)(int32_t)new_addr; // same here.
         }
     }
-    printf("[_tlb_lookup] WARNING: Lookup failed. Defaulting to original address 0x%jX. Recomp may crash!\n", eff_addr);
+    
+    printf("[_tlb_lookup_raw] WARNING: Lookup failed. Defaulting to original address 0x%jX. Recomp may crash!\n", eff_addr);
     return eff_addr; // same here.
+}
+
+#define MIN(a,b) ((a) < (b) ? (a) : (b))
+
+/**
+ * HACK: Stupid raw translate as workaround for the fact the developers chose to poke unmapped TLB overlays.
+ */
+static inline int64_t _hack_addr_translate(int64_t eff_addr) {
+    uint32_t addr32 = (uint32_t)eff_addr;
+
+    switch (addr32) {
+        case 0x802D0A14: addr32 = 0x0E001A14; return (int64_t)(int32_t)addr32; // func_0E001A14_E7B354
+        case 0x802D090C: addr32 = 0x0E00190C; return (int64_t)(int32_t)addr32; // func_0E00190C_E7B24C
+    }
+
+    return (int64_t)(int32_t)addr32; // same here.
 }
 
 #ifdef __cplusplus

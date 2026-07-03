@@ -52,6 +52,8 @@ extern "C" void osMapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
 extern "C" void osUnmapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
     s32 index = _arg<0, s32>(rdram, ctx);
 
+    printf("[osUnmapTLB] Unmapping osUnmapTLB index %d\n", index);
+
     gTLBTable[index].pm = 0;
     gTLBTable[index].pagesize = 0;
     gTLBTable[index].vaddr = 0;
@@ -60,6 +62,8 @@ extern "C" void osUnmapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
 }
 
 extern "C" void osUnmapTLBAll_recomp(uint8_t* rdram, recomp_context* ctx) {
+    printf("[osUnmapTLBAll] Unmapping all TLB entries\n");
+
     for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
         gTLBTable[i].pm = 0;
         gTLBTable[i].pagesize = 0;

@@ -460,7 +460,7 @@ recomp_func_t* get_function(int32_t vram);
 
 // Translate the TLB values.
 #define LOOKUP_FUNC(val)         \
-    get_function((int32_t)(val))
+    get_function((int32_t)(_hack_addr_translate(val)))
 
 extern int32_t* section_addresses;
 
