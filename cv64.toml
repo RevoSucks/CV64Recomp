@@ -64,3 +64,12 @@ before_vram = 0x8005BA64
 text = """
     ctx->r5 = _tlb_lookup_reverse(ctx->r5);
 """
+
+# The Gilles de Rais boss cutscene in the left tower uses osVirtualToPhysical instead of manually translating
+# the offset, for some reason.
+[[patches.instruction]]
+func = "func_0F009678_DC2868"
+vram = 0x0F009690
+value = 0x0FC02898 # jal func_0F00A260_DC3450
+
+# TODO: Patch the rest
