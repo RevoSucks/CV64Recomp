@@ -56,9 +56,9 @@ struct UnkStruct8000C800_Input {
     void *unk10;
 }; // unknown size
 
-RECOMP_EXPORT u32 get_tag_from_figure(void *arg0) {
+RECOMP_EXPORT u32 get_tag_from_figure(void *arg0, int figure_idx) {
     struct NewFigure *ptr = (struct NewFigure *)arg0;
-    s16 ID = -1;
+    s16 ID = 0; // no match
 
     // seek to the master struct value. This ascends the heirarchy until we found the 'master' struct.
     while (ptr->header.parent) {
@@ -76,16 +76,27 @@ RECOMP_EXPORT u32 get_tag_from_figure(void *arg0) {
     }
 
     // the ID is in use. Try tagging it.
-    if (ID != -1 && ID != 0) {
-        // unmask the object bits.
-        ID &= ~(OBJ_FLAG_ENABLE_COLLISION);
-        ID &= ~(OBJ_FLAG_MAP_OVERLAY);
-        ID &= ~(OBJ_FLAG_DESTROY);
-        ID &= ~(OBJ_FLAG_MOVE_ALONGSIDE_COLLISION);
+    if (ID != 0) {
+        // for -1 IDs, we mask their object ID on top of it, since this is a geometry object.
+        if (ID != -1) {
+            // unmask the object bits.
+            ID &= ~(OBJ_FLAG_ENABLE_COLLISION);
+            ID &= ~(OBJ_FLAG_MAP_OVERLAY);
+            ID &= ~(OBJ_FLAG_DESTROY);
+            ID &= ~(OBJ_FLAG_MOVE_ALONGSIDE_COLLISION);
 
-        return (ID << 16) | i;
+            return ((u32)ID << 16) | i; // use object IDX for objects.
+        } else {
+            // unmask the object bits.
+            ID &= ~(OBJ_FLAG_ENABLE_COLLISION);
+            ID &= ~(OBJ_FLAG_MAP_OVERLAY);
+            ID &= ~(OBJ_FLAG_DESTROY);
+            ID &= ~(OBJ_FLAG_MOVE_ALONGSIDE_COLLISION);
+
+            return ((u32)ID << 16) | (figure_idx | 0x00008000); // this is geometry. Use figure IDX instead.
+        }
     }
-    return 0xFFFFFFFF;
+    return ID;
 }
 
 // geometry?
@@ -120,7 +131,7 @@ RECOMP_PATCH void func_80006194_6D94(NewFigure * arg0) {
 
         gSPMatrix(gDisplayListHead++, &D_80387AE8[figure_idx], G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
-        u32 tag = get_tag_from_figure(arg0);
+        u32 tag = get_tag_from_figure(arg0, figure_idx);
 
         recomp_printf("[func_80006194_6D94] tag 1 0x%08X\n", tag);
         gEXMatrixGroupDecomposedNormal(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);
@@ -129,12 +140,12 @@ RECOMP_PATCH void func_80006194_6D94(NewFigure * arg0) {
     }
 
     figure_idx = (NewFigure*)arg0 - (NewFigure*)figures_array;
-    u32 tag = get_tag_from_figure(arg0);
+    u32 tag = get_tag_from_figure(arg0, figure_idx);
 
     gSPMatrix(gDisplayListHead++, &D_80387AE8[figure_idx], G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_MODELVIEW);
 
     if (arg0->unk30 != NULL) {
-        u32 tag = get_tag_from_figure(arg0);
+        u32 tag = get_tag_from_figure(arg0, figure_idx);
         
         recomp_printf("[func_80006194_6D94] tag 2 0x%08X\n", tag);
         gEXMatrixGroupDecomposedNormal(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);
@@ -142,7 +153,7 @@ RECOMP_PATCH void func_80006194_6D94(NewFigure * arg0) {
         gEXPopMatrixGroup(gDisplayListHead++, G_MTX_MODELVIEW);
     }
 
-    tag = get_tag_from_figure(arg0);
+    tag = get_tag_from_figure(arg0, figure_idx);
     
     recomp_printf("[func_80006194_6D94] tag 3 0x%08X\n", tag);
     gEXMatrixGroupDecomposedNormal(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);
