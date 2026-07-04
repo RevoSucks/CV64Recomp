@@ -56,9 +56,11 @@ value = 0x00E3082A # sltu $at, $a3, $v1 -> slt $at, $a3, $v1
 # Jumping to these addresses will fail since the TLB functions live in segmented space in N64Recomp side.
 # Thus, the jals either need to be patched or the offending osVirtualToPhysical use patched out.
 
-[[patches.instruction]]
-func = "func_0F009678_DC2868"
-vram = 0x0F009690
-value = 0x0FC02898 # jal func_0F00A260_DC3450
+# This will undo the effect set function's effect by reversing the translation so the TLB function is stored.
 
-# TODO: Patch the rest
+[[patches.hook]]
+func = "effect_setLoopFunction"
+before_vram = 0x8005BA64
+text = """
+    ctx->r5 = _tlb_lookup_reverse(ctx->r5);
+"""

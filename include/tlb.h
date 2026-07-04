@@ -15,6 +15,8 @@ extern "C" {
 
 typedef uint32_t OSPageMask;
 
+#define TLB_DEBUG
+
 // TODO
 struct TLBEntry {
     OSPageMask pm;
@@ -144,17 +146,66 @@ static inline int64_t _tlb_lookup_raw(int64_t eff_addr) {
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 /**
- * HACK: Stupid raw translate as workaround for the fact the developers chose to poke unmapped TLB overlays.
+ * RDRAM lookup for TLB. This one looks up the original TLB addr from a physical addr.
  */
-static inline int64_t _hack_addr_translate(int64_t eff_addr) {
-    uint32_t addr32 = (uint32_t)eff_addr;
-
-    switch (addr32) {
-        case 0x802D0A14: addr32 = 0x0E001A14; return (int64_t)(int32_t)addr32; // func_0E001A14_E7B354
-        case 0x802D090C: addr32 = 0x0E00190C; return (int64_t)(int32_t)addr32; // func_0E00190C_E7B24C
+static inline int64_t _tlb_lookup_reverse(int64_t eff_addr) {
+    // Fast path: is this normal RDRAM? — no TLB walk needed.
+    if ((((uint64_t)eff_addr & 0x00000000FF000000) >> 24) != 0x80) {
+        return eff_addr; // no need to process
     }
 
-    return (int64_t)(int32_t)addr32; // same here.
+    uint32_t addr32 = (uint32_t)eff_addr;
+
+#ifdef TLB_DEBUG
+    printf("[_tlb_lookup_reverse] Looking up physical address 0x%08X\n", addr32);
+    volatile int bp = 0;
+#endif
+
+    // Lookup the TLB table entry.
+    for(int i = 0; i < TLB_ENTRY_COUNT; i++) {
+        uint32_t pagesize = gTLBTable[i].pagesize;
+        uint32_t fullsize = pagesize;
+        int tlb_count = 0; // we need to keep track of the number of uses of addr field because effective page size matters
+        uint32_t baseaddr = 0;
+
+        if (gTLBTable[i].evenpaddr != -1 && gTLBTable[i].evenpaddr != 0) tlb_count++;
+        if (gTLBTable[i].oddpaddr != -1 && gTLBTable[i].oddpaddr != 0) tlb_count++;
+
+        if (tlb_count == 0) {
+            continue; // skip empty entries.
+        }
+
+        // if both fields are used, the effective range is double due to 2 pages.
+        if (tlb_count == 2) {
+            fullsize += pagesize;
+        }
+
+        // use the base of the entry.
+#ifdef TLB_DEBUG
+        printf("[_tlb_lookup_reverse] Checking TLB entry %d: evenpaddr 0x%08X, oddpaddr 0x%08X\n", i, gTLBTable[i].evenpaddr, gTLBTable[i].oddpaddr);
+#endif        
+
+        // if we are only using one of the two addresses, we need to use that one. if we are using both, we need to use the lower one.
+        if (tlb_count == 1) {
+            baseaddr = (gTLBTable[i].evenpaddr != -1 && gTLBTable[i].evenpaddr != 0) ? gTLBTable[i].evenpaddr : gTLBTable[i].oddpaddr;
+        } else {
+            baseaddr = MIN(gTLBTable[i].evenpaddr, gTLBTable[i].oddpaddr);
+        }
+
+        // sign extend to KSEG0
+        baseaddr |= 0x80000000;
+
+        // is the address in the range?
+        if (addr32 >= baseaddr && addr32 <= (baseaddr + fullsize)) {
+            uint32_t offset = addr32 - baseaddr; // fetch the offset.
+            uint32_t new_addr = gTLBTable[i].vaddr + offset;
+
+            return (int64_t)(int32_t)new_addr; // same here.
+        }
+    }
+
+    printf("[_tlb_lookup_reverse] WARNING: Lookup failed. Defaulting to original address 0x%jX. Recomp may crash!\n", eff_addr);
+    return eff_addr; // same here.
 }
 
 #ifdef __cplusplus

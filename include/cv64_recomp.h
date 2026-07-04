@@ -457,10 +457,11 @@ typedef void (recomp_func_t)(uint8_t* rdram, recomp_context* ctx);
 typedef void (recomp_func_ext_t)(uint8_t* rdram, recomp_context* ctx, uintptr_t arg);
 
 recomp_func_t* get_function(int32_t vram);
+recomp_func_t* get_function_no_assert(int32_t vram);
 
 // Translate the TLB values.
 #define LOOKUP_FUNC(val)         \
-    get_function((int32_t)(_hack_addr_translate(val)))
+    get_function((int32_t)((val)))
 
 extern int32_t* section_addresses;
 
