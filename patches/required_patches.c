@@ -3,6 +3,7 @@
 #include "PR/os_pi.h"
 #include "game/system_work.h"
 #include "game/object_ID.h"
+#include "game/objects/engine/GameStateMgr.h"
 
 struct FileSegment {
     u32 start;

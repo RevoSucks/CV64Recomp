@@ -10,6 +10,7 @@ elf_path = "cv64.decompressed.us.elf"
 relocatable_sections_path = "cv64.us.overlays.txt"
 recomp_include = "#include \"cv64_recomp.h\""
 bss_section_suffix = "_bss"
+trace_mode = false
 
 [patches]
 
@@ -72,4 +73,26 @@ func = "func_0F009678_DC2868"
 vram = 0x0F009690
 value = 0x0FC02898 # jal func_0F00A260_DC3450
 
-# TODO: Patch the rest
+# Camilla boss cutscene has the same issue too.
+[[patches.hook]]
+func = "func_0F000070_E16750"
+before_vram = 0x0F000124
+text = """
+    ctx->r24 = 0x0F004770;
+"""
+
+# ...and so does Rosa's boss intro.
+[[patches.hook]]
+func = "func_0F000114_DE5874"
+before_vram = 0x0F00024C
+text = """
+    ctx->r10 = 0x0F00E5A8;
+"""
+
+# The fight with Gilles de Rais also crashes for the same reason.
+[[patches.hook]]
+func = "func_0F008CA0_DC1E90"
+before_vram = 0x0F008EEC
+text = """
+    ctx->r14 = 0x0F00A260;
+"""
