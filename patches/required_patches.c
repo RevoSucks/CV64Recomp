@@ -25,7 +25,7 @@ extern void overlay_apply_relocations(u32 file_id, u8 *load_addr);
 extern void romCopyAndDecompress(u32, void *, u32);
 
 RECOMP_PATCH void DMA_ROMCopy(void* src, void* dest, s32 len) {
-    recomp_printf("[DMA_ROMCopy] src 0x%08X src 0x%08X src 0x%08X\n", (u32)src, (u32)dest, len);
+    //recomp_printf("[DMA_ROMCopy] src 0x%08X src 0x%08X src 0x%08X\n", (u32)src, (u32)dest, len);
 
     // Certain overlays are decompressed. These dont use the mapOverlay system and are just
     // DMA'd regularly from the DMA Mgr load file. We will load them here, and handle common.
@@ -116,7 +116,7 @@ extern u32 D_80387DB8[];
 extern u32 D_80092270_92E70[];
 
 u32 get_decompressed_rom(u32 rom) {
-    recomp_printf("[get_decompressed_rom] input 0x%08X\n", rom);
+    //recomp_printf("[get_decompressed_rom] input 0x%08X\n", rom);
 
     switch(rom) {
         case 0xA1560C: return 0xC95BA0; // ni_ovl_A1560C
@@ -262,7 +262,7 @@ u32 get_decompressed_rom(u32 rom) {
         case 0xBB1352: return 0xED7B80; // ni_ovl_BB1352
         case 0xBB2D88: return 0xEDA5B0; // ni_ovl_BB2D88
         default:
-            recomp_printf("[get_decompressed_rom] failed to lookup decompressed ROM offset. Returning input.\n");
+            recomp_printf("[get_decompressed_rom] WARNING: failed to lookup decompressed ROM offset. Returning input.\n");
             return rom;
     }
 }
@@ -275,7 +275,7 @@ RECOMP_PATCH void mapOverlay(ObjectHeader* self) {
     u32 i;
     s32 tlb_id;
 
-    recomp_printf("[mapOverlay] called with overlay ID %d 0x%08X and flags 0x%08X\n", self->ID, self->ID, self->flags);
+    //recomp_printf("[mapOverlay] called with overlay ID %d 0x%08X and flags 0x%08X\n", self->ID, self->ID, self->flags);
 
     if (self == 0)
     {
@@ -341,7 +341,7 @@ RECOMP_PATCH void mapOverlay(ObjectHeader* self) {
 
         rom = get_decompressed_rom(rom);
 
-        recomp_printf("[mapOverlay] recomp_load_overlays call using args 0x%08X 0x%08X 0x%08X\n", rom, vaddr, size);
+        //recomp_printf("[mapOverlay] recomp_load_overlays call using args 0x%08X 0x%08X 0x%08X\n", rom, vaddr, size);
 
         recomp_load_overlays(rom, (void*)vaddr, size);
     }

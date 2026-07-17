@@ -48,3 +48,4 @@ recomp_get_analog_cam_sensitivity = 0x8F0000C4;
 recomp_run_ui_callbacks = 0x8F0000C8;
 osMapTLB_recomp = 0x8F0000CC;
 recomp_tlb_lookup = 0x8F0000D0;
+recomp_get_hud_aspect_ratio = 0x8F0000D4;

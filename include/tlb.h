@@ -15,8 +15,6 @@ extern "C" {
 
 typedef uint32_t OSPageMask;
 
-#define TLB_DEBUG
-
 // TODO
 struct TLBEntry {
     OSPageMask pm;
@@ -156,11 +154,6 @@ static inline int64_t _tlb_lookup_reverse(int64_t eff_addr) {
 
     uint32_t addr32 = (uint32_t)eff_addr;
 
-#ifdef TLB_DEBUG
-    printf("[_tlb_lookup_reverse] Looking up physical address 0x%08X\n", addr32);
-    volatile int bp = 0;
-#endif
-
     // Lookup the TLB table entry.
     for(int i = 0; i < TLB_ENTRY_COUNT; i++) {
         uint32_t pagesize = gTLBTable[i].pagesize;
@@ -204,7 +197,9 @@ static inline int64_t _tlb_lookup_reverse(int64_t eff_addr) {
         }
     }
 
+#ifdef TLB_DEBUG
     printf("[_tlb_lookup_reverse] WARNING: Lookup failed. Defaulting to original address 0x%jX. Recomp may crash!\n", eff_addr);
+#endif
     return eff_addr; // same here.
 }
 

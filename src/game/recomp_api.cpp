@@ -103,6 +103,23 @@ extern "C" void recomp_get_target_aspect_ratio(uint8_t* rdram, recomp_context* c
     }
 }
 
+extern "C" void recomp_get_hud_aspect_ratio(uint8_t* rdram, recomp_context* ctx) {
+    ultramodern::renderer::GraphicsConfig graphics_config = ultramodern::renderer::get_graphics_config();
+
+    switch (graphics_config.hr_option) {
+        case ultramodern::renderer::HUDRatioMode::Original:
+        default:
+            _return(ctx, 0);
+            return;
+        case ultramodern::renderer::HUDRatioMode::Clamp16x9:
+            _return(ctx, 1);
+            return;
+        case ultramodern::renderer::HUDRatioMode::Full:
+            _return(ctx, 2);
+            return;
+    }
+}
+
 extern "C" void recomp_get_cutscene_aspect_ratio(uint8_t *rdram, recomp_context *ctx) {
     float original = _arg<0, float>(rdram, ctx);
     int width, height;

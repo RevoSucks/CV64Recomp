@@ -8,7 +8,7 @@ extern "C" {
 struct TLBEntry gTLBTable[TLB_ENTRY_COUNT];
 }
 
-#define TLB_DEBUG
+//#define TLB_DEBUG
 
 extern "C" void osMapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
     s32 index = _arg<0, s32>(rdram, ctx);
@@ -52,7 +52,9 @@ extern "C" void osMapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
 extern "C" void osUnmapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
     s32 index = _arg<0, s32>(rdram, ctx);
 
+#ifdef TLB_DEBUG
     printf("[osUnmapTLB] Unmapping osUnmapTLB index %d\n", index);
+#endif
 
     gTLBTable[index].pm = 0;
     gTLBTable[index].pagesize = 0;
@@ -62,7 +64,9 @@ extern "C" void osUnmapTLB_recomp(uint8_t* rdram, recomp_context* ctx) {
 }
 
 extern "C" void osUnmapTLBAll_recomp(uint8_t* rdram, recomp_context* ctx) {
+#ifdef TLB_DEBUG
     printf("[osUnmapTLBAll] Unmapping all TLB entries\n");
+#endif
 
     for (int i = 0; i < TLB_ENTRY_COUNT; i++) {
         gTLBTable[i].pm = 0;
