@@ -2,10 +2,16 @@
 #include "misc_funcs.h"
 #include "graphics.h"
 
+// game headers
+
 #include "cv64.h"
 #include "game/system_work.h"
 #include "game/gamestate.h"
 #include "game/object.h"
+
+// recomp
+
+#include "mtx.h"
 
 // gfx.c
 
@@ -164,7 +170,9 @@ RECOMP_EXPORT enum HudObjectType check_figure_for_hud(void *arg0, Object *hud) {
     return HUD_OBJECT_NEITHER;
 }
 
-// geometry?
+typedef float Matrix[4][4];
+
+// camera?
 RECOMP_PATCH void func_80005684_6284(NewFigure* arg0) {
     int i;
 
@@ -178,9 +186,21 @@ RECOMP_PATCH void func_80005684_6284(NewFigure* arg0) {
         gSPPerspNormalize(gDisplayListHead++, arg0->unk24);
     }
 
-    gSPMatrix(gDisplayListHead++, &D_80387AE8[figure_idx], G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+    recomp_printf("[func_80005684_6284] tag %d\n", tag);
+
+    if (gFigureArrMtx[figure_idx].proj != NULL && gFigureArrMtx[figure_idx].view != NULL) {
+        // we have a tagged figure which has separated matrices. Use this instead.
+        recomp_printf("[func_80005684_6284] separate mtx figures found at %d 0x%02X, using ptrs\n", figure_idx, figure_idx);
+        gSPMatrix(gDisplayListHead++, gFigureArrMtx[figure_idx].proj, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+        gSPMatrix(gDisplayListHead++, gFigureArrMtx[figure_idx].view, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
+    } else {
+        // fall back to original logic.
+        recomp_printf("[func_80005684_6284] lookup failed for %d 0x%02X\n", figure_idx, figure_idx);
+        gSPMatrix(gDisplayListHead++, &D_80387AE8[figure_idx], G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
+    }
 
     for (i = 0; i < 5; i++) {
+        //recomp_printf("[func_80005684_6284] gfx buf id %d 0x%08X\n", i, arg0->u.unk3C_gfx[i]);
         *(gDisplayListHead++) = arg0->u.unk3C_gfx[i];
     }
 }
