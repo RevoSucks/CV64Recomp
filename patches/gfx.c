@@ -7,7 +7,10 @@
 #include "cv64.h"
 #include "game/system_work.h"
 #include "game/gamestate.h"
-#include "game/object.h"
+#include "gfx/camera.h"
+#include "gfx/figure.h"
+
+#include "figure_funcs.h"
 
 // recomp
 
@@ -17,6 +20,9 @@
 
 #define gEXMatrixGroupDecomposedNormal(cmd, id, push, proj, edit) \
     gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_AUTO)
+
+#define gEXMatrixGroupDecomposedNormalVert(cmd, id, push, proj, vert, edit) \
+    gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, vert, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_AUTO)
 
 RECOMP_PATCH void setup_frame() {
     gDisplayListHead = &sys.graphic_buffers[sys.current_graphic_buffer].dlists;
@@ -37,25 +43,6 @@ RECOMP_PATCH void setup_frame() {
 
 extern Mtx* D_80387AE8;
 
-// Generic figure struct
-// Generic figure struct
-typedef struct NewFigure {
-    FigureHeader header;
-    u8 field_0x14[0x24 - 0x14];
-    /* 0x24 */ u16 unk24;
-    /* 0x26 */ u16 unk26;
-    /* 0x28 */ u32 *unk28;
-    char filler2C[0x4];
-    /* 0x30 */ void *unk30;
-    void *unk34;
-    void *unk38;
-    union Unk3CUnion {
-        Gfx *unk3C_gfx;
-        u32 unk3C_u32;
-    } u;
-    u8 pad40[0x68];
-} NewFigure; // Size = 0xA8
-
 #define FIGURE_ID_MASK 0x8000
 
 struct UnkStruct8000C800_Input {
@@ -65,109 +52,14 @@ struct UnkStruct8000C800_Input {
 
 extern Vp D_80092F58_93B58;
 
-RECOMP_EXPORT Figure *get_root_figure(void *arg0) {
-    struct NewFigure *ptr = (struct NewFigure *)arg0;
-
-    // seek to the master struct value. This ascends the heirarchy until we found the 'master' struct.
-    while (ptr->header.parent) {
-        ptr = (NewFigure *)ptr->header.parent;
+RECOMP_EXPORT int get_vtx_setting_from_id(s16 id) {
+    switch(id) {
+        // these should be skipped.
+        case 0:
+        case -1:
+            return G_EX_COMPONENT_SKIP;
     }
-
-    return ptr;
-}
-
-RECOMP_EXPORT u32 get_tag_from_figure(void *arg0, int figure_idx) {
-    struct NewFigure *ptr = get_root_figure(arg0);
-    s16 ID = 0; // no match
-
-    int i;
-
-    // search for the matching object.
-    for(i = 0; i < OBJECT_ARRAY_MAX; i++) {
-        if (objects_array[i].figures[0] == (u32)ptr) {
-            ID = objects_array[i].header.ID;
-            break;
-        }
-    }
-
-    // the ID is in use. Try tagging it.
-    if (ID != 0) {
-        // for -1 IDs, we mask their object ID on top of it, since this is a geometry object.
-        if (ID != -1) {
-            // unmask the object bits.
-            ID &= ~(OBJ_FLAG_ENABLE_COLLISION);
-            ID &= ~(OBJ_FLAG_MAP_OVERLAY);
-            ID &= ~(OBJ_FLAG_DESTROY);
-            ID &= ~(OBJ_FLAG_MOVE_ALONGSIDE_COLLISION);
-
-            return ((u32)ID << 16) | i; // use object IDX for objects.
-        } else {
-            // unmask the object bits.
-            ID &= ~(OBJ_FLAG_ENABLE_COLLISION);
-            ID &= ~(OBJ_FLAG_MAP_OVERLAY);
-            ID &= ~(OBJ_FLAG_DESTROY);
-            ID &= ~(OBJ_FLAG_MOVE_ALONGSIDE_COLLISION);
-
-            return ((u32)ID << 16) | (figure_idx | 0x00008000); // this is geometry. Use figure IDX instead.
-        }
-    }
-    return ID;
-}
-
-RECOMP_EXPORT Object *get_hud_object() {
-    for(int i = 0; i < OBJECT_ARRAY_MAX; i++) {
-        if (objects_array[i].header.ID == 0x0129) {
-            return &objects_array[i];
-        }
-    }
-    return NULL;
-}
-
-RECOMP_EXPORT int is_pause_menu_spawned() {
-    for(int i = 0; i < OBJECT_ARRAY_MAX; i++) {
-        if ((objects_array[i].header.ID & 0x0FFF) == 0x134) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-enum HudObjectType {
-    HUD_OBJECT_BAR,       // needs to be left aligned
-    HUD_OBJECT_SUBWEAPON, // needs to be right aligned
-    HUD_OBJECT_CAMERA_MODE, // left aligned bottom left text
-    HUD_OBJECT_NEITHER, // return this if it's not the HUD
-};
-
-extern Camera* common_camera_8009B440;
-
-RECOMP_EXPORT enum HudObjectType check_figure_for_hud(void *arg0, Object *hud) {
-    struct NewFigure *ptr = (struct NewFigure *)arg0;
-
-    // hardcoded ptr check
-    if ((u32)get_root_figure(ptr) == (u32)common_camera_8009B440->next) {
-        //recomp_printf("[check_figure_for_hud] camera mode found\n");
-        return HUD_OBJECT_CAMERA_MODE;
-    }
-
-    // if the HUD isnt even loaded, no need to even check (nor did we receive a valid Figure pointer)
-    if (hud == NULL || ptr == NULL) {
-        return HUD_OBJECT_NEITHER;
-    }
-
-    if ((hud->figures[0] == (Figure *)ptr) || (hud->figures[4] == (Figure *)ptr)
-     || (hud->figures[5] == (Figure *)ptr) || (hud->figures[6] == (Figure *)ptr)
-     || (hud->figures[7] == (Figure *)ptr) || (hud->figures[8] == (Figure *)ptr)
-     || (hud->figures[9] == (Figure *)ptr)) { 
-        return HUD_OBJECT_BAR; // clock and HP bar (left align)
-    } else if ((hud->figures[1] == (Figure *)ptr) || (hud->figures[2] == (Figure *)ptr)
-            || (hud->figures[3] == (Figure *)ptr) || (hud->figures[12] == (Figure *)ptr)
-            || (hud->figures[13] == (Figure *)ptr) || (hud->figures[14] == (Figure *)ptr)
-            || (hud->figures[10] == (Figure *)ptr) || (hud->figures[11] == (Figure *)ptr)) {
-        return HUD_OBJECT_SUBWEAPON; // boss bar, status/gold/good, subweapon box (right align)
-    }
-
-    return HUD_OBJECT_NEITHER;
+    return G_EX_COMPONENT_INTERPOLATE;   
 }
 
 typedef float Matrix[4][4];
@@ -186,16 +78,12 @@ RECOMP_PATCH void func_80005684_6284(NewFigure* arg0) {
         gSPPerspNormalize(gDisplayListHead++, arg0->unk24);
     }
 
-    recomp_printf("[func_80005684_6284] tag %d\n", tag);
-
     if (gFigureArrMtx[figure_idx].proj != NULL && gFigureArrMtx[figure_idx].view != NULL) {
         // we have a tagged figure which has separated matrices. Use this instead.
-        recomp_printf("[func_80005684_6284] separate mtx figures found at %d 0x%02X, using ptrs\n", figure_idx, figure_idx);
         gSPMatrix(gDisplayListHead++, gFigureArrMtx[figure_idx].proj, G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
         gSPMatrix(gDisplayListHead++, gFigureArrMtx[figure_idx].view, G_MTX_NOPUSH | G_MTX_MUL | G_MTX_PROJECTION);
     } else {
         // fall back to original logic.
-        recomp_printf("[func_80005684_6284] lookup failed for %d 0x%02X\n", figure_idx, figure_idx);
         gSPMatrix(gDisplayListHead++, &D_80387AE8[figure_idx], G_MTX_NOPUSH | G_MTX_LOAD | G_MTX_PROJECTION);
     }
 
@@ -208,6 +96,8 @@ RECOMP_PATCH void func_80005684_6284(NewFigure* arg0) {
 extern Mtx* D_80387AE8;
 
 extern void func_80005AD8_66D8(NewFigure *, u32);
+
+static int timer = 0;
 
 RECOMP_PATCH void func_80006194_6D94(NewFigure * arg0) {
     int figure_idx;
@@ -282,7 +172,12 @@ RECOMP_PATCH void func_80006194_6D94(NewFigure * arg0) {
         pop_viewport = 0;
     }
 
-    gEXMatrixGroupDecomposedNormal(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, G_EX_EDIT_NONE);
+    if (tag && arg0->header.type & FIG_TYPE_ALLOW_TRANSPARENCY_CHANGE) {
+        recomp_printf("[func_80006194_6D94] (%d) Type flags for figure 0x%08X allowed transparent change! tag 0x%08X\n", timer++, arg0->header.type, tag);
+    }
+
+    int vert = get_vtx_setting_from_id(get_id_from_figure(arg0, figure_idx));
+    gEXMatrixGroupDecomposedNormalVert(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, vert, G_EX_EDIT_NONE);
     func_80005AD8_66D8(arg0, (u32)arg0->unk34);
     gEXPopMatrixGroup(gDisplayListHead++, G_MTX_MODELVIEW);
 

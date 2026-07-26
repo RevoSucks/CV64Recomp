@@ -24,7 +24,6 @@ RECOMP_PATCH void func_80153908_D6AF8(Gfx** gfxP) {
     gDPSetTextureFilter((*gfxP)++, G_TF_BILERP);
     gDPSetAlphaCompare((*gfxP)++, G_AC_NONE);
 
-    recomp_printf("[func_80153908_D6AF8] fog position 0x%08X 0x%08X\n", D_80383AB8.unk4028, D_80383AB8.unk402A);
     gSPFogPosition((*gfxP)++, D_80383AB8.unk4028, D_80383AB8.unk402A);
 }
 

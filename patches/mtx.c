@@ -175,7 +175,7 @@ RECOMP_PATCH void func_8000CC50_D850(NewFigure* figure) {
         figure->unk56 = 0;
 
         int figure_idx = (NewFigure*)figure - (NewFigure*)figures_array;
-        recomp_printf("[func_8000CC50_D850] setting figure idx matrices for %d 0x%02X\n", figure_idx, figure_idx);
+
         set_figure_arr_matrix(figure_idx, D_80387B30, FIGURE_MTX_ARRAY_VIEW); // view
         set_figure_arr_matrix(figure_idx, sp80, FIGURE_MTX_ARRAY_PROJ);       // proj
 
@@ -213,10 +213,7 @@ RECOMP_PATCH void func_8000CC50_D850(NewFigure* figure) {
 
         figure->unk52 = atan2f(sp78, sqrtf((sp7C * sp7C) + (sp74 * sp74)));
 
-        recomp_printf("[func_8000CC50_D850] (2) pre args for atan2f 0x%08X 0x%08X\n", *(u32*)&D_80387B58, *(u32*)&D_80387B38);
-        recomp_printf("[func_8000CC50_D850] (2) pre args for atan2f %.6f %.6f\n", D_80387B58, D_80387B38);
         figure->unk54 = atan2f((D_80387B58 < 0.0 ? -D_80387B58 : D_80387B58), D_80387B38);
-        recomp_printf("[func_8000CC50_D850] (2) result %d 0x%04X\n", figure->unk54, *(u16 *)&figure->unk54);
 
         if (sp74 < 0.0) {
             figure->unk54 = -figure->unk54;
