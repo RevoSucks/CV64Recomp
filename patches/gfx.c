@@ -21,8 +21,8 @@
 #define gEXMatrixGroupDecomposedNormal(cmd, id, push, proj, edit) \
     gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_AUTO)
 
-#define gEXMatrixGroupDecomposedNormalVert(cmd, id, push, proj, vert, edit) \
-    gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, vert, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_AUTO)
+#define gEXMatrixGroupDecomposedNormalVertTC(cmd, id, push, proj, vert, tc, edit) \
+    gEXMatrixGroupDecomposed(cmd, id, push, proj, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, G_EX_COMPONENT_INTERPOLATE, vert, G_EX_COMPONENT_INTERPOLATE, G_EX_ORDER_LINEAR, edit, tc, G_EX_COMPONENT_AUTO)
 
 RECOMP_PATCH void setup_frame() {
     gDisplayListHead = &sys.graphic_buffers[sys.current_graphic_buffer].dlists;
@@ -60,6 +60,14 @@ RECOMP_EXPORT int get_vtx_setting_from_id(s16 id) {
             return G_EX_COMPONENT_SKIP;
     }
     return G_EX_COMPONENT_INTERPOLATE;   
+}
+
+RECOMP_EXPORT int get_tc_setting_from_id(s16 id) {
+    switch(id) {
+        case 0x175: // skybox
+            return G_EX_COMPONENT_INTERPOLATE;
+    }
+    return G_EX_COMPONENT_SKIP;
 }
 
 typedef float Matrix[4][4];
@@ -172,12 +180,9 @@ RECOMP_PATCH void func_80006194_6D94(NewFigure * arg0) {
         pop_viewport = 0;
     }
 
-    if (tag && arg0->header.type & FIG_TYPE_ALLOW_TRANSPARENCY_CHANGE) {
-        recomp_printf("[func_80006194_6D94] (%d) Type flags for figure 0x%08X allowed transparent change! tag 0x%08X\n", timer++, arg0->header.type, tag);
-    }
-
     int vert = get_vtx_setting_from_id(get_id_from_figure(arg0, figure_idx));
-    gEXMatrixGroupDecomposedNormalVert(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, vert, G_EX_EDIT_NONE);
+    int tc = get_tc_setting_from_id(get_id_from_figure(arg0, figure_idx));
+    gEXMatrixGroupDecomposedNormalVertTC(gDisplayListHead++, tag, G_MTX_PUSH, G_MTX_MODELVIEW, vert, tc, G_EX_EDIT_NONE);
     func_80005AD8_66D8(arg0, (u32)arg0->unk34);
     gEXPopMatrixGroup(gDisplayListHead++, G_MTX_MODELVIEW);
 

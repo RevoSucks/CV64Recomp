@@ -74,7 +74,7 @@ struct UnkStruct80383AB8 {
 extern struct UnkStruct80383AB8 D_80383AB8;
 
 struct UnkStruct80093360 {
-    s32 unk0;  
+    s32 unk0;
     s32 unk4;
     s32 unk8;
 };
