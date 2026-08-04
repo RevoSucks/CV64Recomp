@@ -72,18 +72,32 @@ RECOMP_EXPORT int get_tc_setting_from_id(s16 id) {
 
 typedef float Matrix[4][4];
 
+int camera_interpolation_disabled = 0;
+
+#define CAMERA_TAG 0xDEADBEEF
+
+#define gEXMatrixGroupNoInterpolateID(cmd, id, push, proj, edit) \
+    gEXMatrixGroup(cmd, id, G_EX_INTERPOLATE_SIMPLE, push, proj, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP, G_EX_ORDER_LINEAR, edit, G_EX_ASPECT_AUTO, G_EX_COMPONENT_SKIP, G_EX_COMPONENT_SKIP)
+
 // camera?
 RECOMP_PATCH void func_80005684_6284(NewFigure* arg0) {
     int i;
 
     int figure_idx = (NewFigure*)arg0 - (NewFigure*)figures_array;
 
-    u32 tag = get_tag_from_figure(arg0, figure_idx);
+    //u32 tag = get_tag_from_figure(arg0, figure_idx);
+    u32 tag = CAMERA_TAG;
 
     gSPViewport(gDisplayListHead++, arg0->unk30);
 
     if (!(arg0->header.type & 0x0100)) {
         gSPPerspNormalize(gDisplayListHead++, arg0->unk24);
+    }
+
+    if (camera_interpolation_disabled == 0) {
+        gEXMatrixGroupSimpleNormal(gDisplayListHead++, tag, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);
+    } else {
+        gEXMatrixGroupNoInterpolate(gDisplayListHead++, G_EX_NOPUSH, G_MTX_PROJECTION, G_EX_EDIT_NONE);
     }
 
     if (gFigureArrMtx[figure_idx].proj != NULL && gFigureArrMtx[figure_idx].view != NULL) {
