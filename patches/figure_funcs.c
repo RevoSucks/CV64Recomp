@@ -96,7 +96,6 @@ RECOMP_EXPORT enum HudObjectType check_figure_for_hud(void *arg0, Object *hud) {
 
     // hardcoded ptr check
     if ((u32)get_root_figure(ptr) == (u32)common_camera_8009B440->next) {
-        //recomp_printf("[check_figure_for_hud] camera mode found\n");
         return HUD_OBJECT_CAMERA_MODE;
     }
 

@@ -64,7 +64,7 @@
 
 #include "../../lib/rt64/src/contrib/stb/stb_image.h"
 
-const std::string version_string = "0.4.1";
+const std::string version_string = "0.5.0";
 
 template<typename... Ts>
 void exit_error(const char* str, Ts ...args) {
@@ -382,8 +382,8 @@ std::vector<recomp::GameEntry> supported_games = {
         .save_type = recomp::SaveType::Eep16k,
         .thumbnail_bytes = std::span<const char>(icon_bytes),
         .is_enabled = false,
-        //.decompression_routine = banjo::decompress_bk,
-        //.has_compressed_code = true,
+        .decompression_routine = banjo::decompress_bk,
+        .has_compressed_code = true,
         .entrypoint_address = get_entrypoint_address(),
         .entrypoint = recomp_entrypoint,
         .on_init_callback = banjo::bk_on_init,
