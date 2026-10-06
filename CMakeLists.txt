@@ -16,10 +16,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "M
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-everything /W4")
 endif()
 
-if (MSVC AND CMAKE_C_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wno-builtin-macro-redefined)
-endif()
-
 # Opt out of constexpr mutex constructor on windows to prevent vcredist issues
 if (WIN32)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_DISABLE_CONSTEXPR_MUTEX_CONSTRUCTOR")
@@ -216,7 +212,7 @@ if (WIN32)
     if (DEFINED ENV{SDL2_VERSION})
         set(SDL2_VERSION $ENV{SDL2_VERSION})
     else()
-        set(SDL2_VERSION "2.30.3")
+        set(SDL2_VERSION "2.30.10")
     endif()
 
     # Fetch SDL2 on windows
